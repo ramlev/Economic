@@ -63,6 +63,9 @@ class Economic
     public function retrieve($url)
     {
         try {
+            if (!empty($this->headers['body'])) {
+                unset($this->headers['body']);
+            }
             return \GuzzleHttp\json_decode($this->client->get($url, $this->headers)->getBody()->getContents());
         } catch (ClientException $exception) {
             $this->handleRequestException($exception);
@@ -298,7 +301,7 @@ class Economic
     {
         $body = json_decode($exception->getResponse()->getBody()->getContents());
 
-        $message = $body->message;
+        $message = @$body->message;
 
         if (isset($body->errors) && is_array($body->errors)) {
             foreach ($body->errors as $error) {
