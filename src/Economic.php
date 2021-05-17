@@ -64,7 +64,7 @@ class Economic
     {
         try {
             if (!empty($this->headers['body'])) {
-                unset($this->headers['body']);
+              unset($this->headers['body']);
             }
             return \GuzzleHttp\json_decode($this->client->get($url, $this->headers)->getBody()->getContents());
         } catch (ClientException $exception) {

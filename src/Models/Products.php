@@ -66,8 +66,8 @@ class Products
         $product->setBarCode($object->barCode ?? null)
                 ->setBarred($object->barred)
                 ->setCostPrice($object->costPrice ?? null)
-                ->setSalesPrice($object->salesPrice)
-                ->setRecommendedPrice($object->recommendedPrice)
+                ->setSalesPrice((float) @$object->salesPrice)
+                ->setRecommendedPrice((float) @$object->recommendedPrice)
                 ->setDescription($object->description ?? null)
                 ->setLastUpdated($object->lastUpdated)
                 ->setName($object->name)
@@ -281,7 +281,7 @@ class Products
     public function setInventory($inventory = null)
     {
         if (isset($inventory)) {
-            $this->inventory = new Inventory($inventory->available, $inventory->grossWeight, $inventory->inStock, $inventory->netWeight, $inventory->orderedByCustomers, $inventory->orderedFromSuppliers, $inventory->packageVolume, $inventory->recommendedPrice);
+            $this->inventory = @new Inventory($inventory->available, $inventory->grossWeight, $inventory->inStock, $inventory->netWeight, $inventory->orderedByCustomers, $inventory->orderedFromSuppliers, $inventory->packageVolume, $inventory->recommendedPrice);
         }
 
         return $this;

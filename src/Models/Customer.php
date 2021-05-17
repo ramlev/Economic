@@ -78,6 +78,10 @@ class Customer
     private $salesPerson;
     /** @var string $contacts */
     private $contacts;
+    /** @var string $layoutNumber */
+    private $layoutNumber;
+    /** @var string $attention */
+    private $attention;
     /** @var string $self */
     private $self;
 
@@ -109,6 +113,7 @@ class Customer
         $customer->setWebsite($object->website ?? null);
         $customer->setVatZone($object->vatZone);
         $customer->setLastUpdated($object->lastUpdated);
+        $customer->setLayout($object->layout ?? null);
         $customer->setBarred($object->barred ?? null);
         $customer->setCorporateIdentificationNumber($object->corporateIdentificationNumber ?? null);
         $customer->setCreditLimit($object->creditLimit ?? null);
@@ -121,6 +126,13 @@ class Customer
         $customer->setDeliveryLocations($object->deliveryLocations);
         $customer->setTotals($object->totals);
         $customer->setVatNumber($object->vatNumber ?? null);
+
+        if (!empty($object->attention) && !empty($object->attention->customerContactNumber)) {
+          $customer->setAttention($object->attention->customerContactNumber);
+        } else {
+          $customer->setAttention( NULL);
+        }
+
         $customer->setSelf($object->self);
 
         return $customer;
@@ -163,6 +175,7 @@ class Customer
             'telephoneAndFaxNumber' => $this->getTelephoneAndFaxNumber(),
             'zip' => $this->getZip(),
             'vatNumber' => $this->getVatNumber(),
+            'attention' => $this->getAttention()
         ];
 
         $this->api->cleanObject($data);
@@ -175,36 +188,46 @@ class Customer
 
     public function update()
     {
-        $data = (object) [
-            'address' => $this->getAddress(),
-            'barred' => $this->getBarred(),
-            'city' => $this->getCity(),
-            'corporateIdentificationNumber' => $this->getCorporateIdentificationNumber(),
-            'country' => $this->getCountry(),
-            'creditLimit' => $this->getCreditLimit(),
-            'currency' => $this->getCurrency(),
-            'customerGroup' => $this->getCustomerGroup(),
-            'customerNumber' => $this->getCustomerNumber(),
-            'ean' => $this->getEan(),
-            'email' => $this->getEmail(),
-            'name' => $this->getName(),
-            'paymentTerms' => $this->getPaymentTerms(),
-            'publicEntryNumber' => $this->getPublicEntryNumber(),
-            'salesPerson' => $this->getSalesPerson(),
-            'customerContact' => $this->getCustomerContact(),
-            'telephoneAndFaxNumber' => $this->getTelephoneAndFaxNumber(),
-            'vatNumber' => $this->getVatNumber(),
-            'vatZone' => $this->getVatZone(),
-            'website' => $this->getWebsite(),
-            'zip' => $this->getZip(),
+
+      try {
+        $data = [
+          'address' => $this->getAddress(),
+          'barred' => $this->getBarred(),
+          'city' => $this->getCity(),
+          'corporateIdentificationNumber' => $this->getCorporateIdentificationNumber(),
+          'country' => $this->getCountry(),
+          'creditLimit' => $this->getCreditLimit(),
+          'currency' => $this->getCurrency(),
+          'customerGroup' => $this->getCustomerGroup(),
+          'customerNumber' => $this->getCustomerNumber(),
+          'ean' => $this->getEan(),
+          'email' => $this->getEmail(),
+          'name' => $this->getName(),
+          'paymentTerms' => $this->getPaymentTerms(),
+          'publicEntryNumber' => $this->getPublicEntryNumber(),
+          'salesPerson' => $this->getSalesPerson(),
+          'customerContact' => $this->getCustomerContact(),
+          'telephoneAndFaxNumber' => $this->getTelephoneAndFaxNumber(),
+          'vatNumber' => $this->getVatNumber(),
+          'vatZone' => $this->getVatZone(),
+          'website' => $this->getWebsite(),
+          'zip' => $this->getZip(),
+          'defaultDeliveryLocation' => @$this->getDefaultDeliveryLocation(),
+          'attention' => $this->getAttention()
         ];
+
+        $data = (object) $data;
 
         $this->api->cleanObject($data);
 
         $customer = $this->api->update('/customers/'.$this->getCustomerNumber(), $data);
         $this->api->setObject($customer, $this);
 
-        return $this;
+      } catch (\Exception $e) {
+        throwException($e->getMessage());
+      }
+
+      return $this;
     }
 
     public function draftInvoices($pageSize = 20, $skipPages = 0, $recursive = true)
@@ -285,6 +308,29 @@ class Customer
 
         return $this;
     }
+
+  /**
+   * @param null|string $customerNumber
+   * @param null|string $contactNumber
+   *
+   * @return $this
+   */
+  public function setAttention($contactNumber) {
+    if (!empty($contactNumber)) {
+      $this->attention = (object) [
+        'customerContactNumber' => (int) $contactNumber,
+      ];
+    }
+
+    return $this;
+  }
+
+  /**
+   * @return string
+   */
+  public function getAttention() {
+    return $this->attention;
+  }
 
     /**
      * @return string
@@ -745,7 +791,7 @@ class Customer
      * @param bool $barred
      * @return $this
      */
-    public function setBarred(?bool $barred)
+    public function setBarred(bool $barred)
     {
         $this->barred = $barred;
 
@@ -882,6 +928,34 @@ class Customer
         }
 
         return $this;
+    }
+
+  /**
+   * @param null $layout
+   *
+   * @return $this
+   */
+    public function setLayout($layout = NULL) {
+
+      $this->layoutNumber = $layout;
+
+      return $this;
+    }
+
+  /**
+   * @return object
+   */
+    public function getLayout() {
+      return (object) [
+        "layoutNumber" => $this->layoutNumber,
+      ];
+    }
+
+  /**
+   * @return bool|null
+   */
+    public function getLayoutNumber() {
+      return isset($this->layoutNumber) ?? NULL;
     }
 
     /**
